@@ -1,4 +1,3 @@
-all: capture_pack
-
-capture_pack:
+capture: capture.c
+	gcc -o capture capture.c -lpcap
 
