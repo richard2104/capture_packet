@@ -1,7 +1,6 @@
+#include "my_pcap.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include "my_pcap.h"
-
 // Reference from [1] http://www.tcpdump.org/pcap.html
 //                [2] https://www.joinc.co.kr/w/Site/Network_Programing/AdvancedComm/pcap_intro
 //                [3] http://www.netmanias.com/ko/post/blog/5372/ethernet-ip-tcp-ip/packet-header-ethernet-ip-tcp-ip
@@ -49,51 +48,50 @@ void callback(u_char *p, const struct pcap_pkthdr *pkthdr, const u_char *packet)
     struct ether_header *etherHdr; // <netinet/ether.h>
     struct ip *ipHdr; // <netinet/ip.h>
     struct tr0y_tcphdr *tcpHdr; // not in <netinet/tcp.h> , my own tcp_header
-    int hlen = 0;
-    u_int8_t data_area;
+    u_int hlen;
+    char *data_area;
 
-    printf("[*]CAPTURE THE PACKET!\n");
-	printf("[*]Jacked a packet with length of [%d]\n", pkthdr->len);
+    printf("-----------------------\n");
+    printf("[*] CAPTURE THE PACKET!\n");
+	printf("[*] Jacked a packet with length of [%d]\n", pkthdr->len);
 
     /* ethernet header */
     etherHdr = (struct ether_header*) packet;
-    printf("[+]Source MAC       : %s\n", ether_ntoa(etherHdr->ether_shost));
-    printf("[+]Destination MAC  : %s\n", ether_ntoa(etherHdr->ether_dhost));
+    printf("[+] Source MAC       : %s\n", ether_ntoa(etherHdr->ether_shost));
+    printf("[+] Destination MAC  : %s\n", ether_ntoa(etherHdr->ether_dhost));
     
     /* IP TIME!!!!!!! */
     if(ntohs(etherHdr->ether_type) != ETHERTYPE_IP) {		// ETHERTYPE_IP 0x0800 : IPv4 protocol
-        printf("[-]Non-IP packet\n\n");
+        printf("[-] Non-IP packet\n\n");
         return;
     }
     /* IP header */
     ipHdr = (struct ip*)(packet + SIZE_ETHERNET); // SIZE_ETHERNET 6(dst Mac)+6(src Mac)+2(EtherType) = 14
     // inet_ntoa()는 네트워크 바이트 순서의 32비트 값을 Dotted-Decimal Notation의 주소값으로 변환한다.
-    printf("[+]Source IP        : %s\n", inet_ntoa(ipHdr->ip_src));
-    printf("[+]Destination IP   : %s\n", inet_ntoa(ipHdr->ip_dst));
+    printf("[+] Source IP        : %s\n", inet_ntoa(ipHdr->ip_src));
+    printf("[+] Destination IP   : %s\n", inet_ntoa(ipHdr->ip_dst));
 	
 	/* TCP TIME!!!!!! */
     if(ipHdr->ip_p != IPPROTO_TCP) { // In wireshark, protocol field : 6
-        printf("[-]Non-TCP packet\n\n");
+        printf("[-] Non-TCP packet\n\n");
         return;
     }
     /* TCP header */
 	// ip_hl: ip header length 헤더의 길이는 워드 단위로 나타내며 header length의 값이 5라면 5 x 4바이트 = 20바이트
-    tcpHdr = (struct tcphdr*)(packet + SIZE_ETHERNET + 4 * ipHdr->ip_hl);
+    tcpHdr = (struct tr0y_tcphdr*)(packet + SIZE_ETHERNET + 4 * ipHdr->ip_hl);
     // TH_OFF 
     hlen = TH_OFF(tcpHdr) * 4;
-    if(hlen < 20) return;
-    
-    data_area = (u_int8_t *)(packet + SIZE_ETHERNET + 4 * ipHdr->ip_hl + hlen);
+    //printf("-------hlen %d\n",hlen);
+    if(hlen < 20) return; 
 
     // ntohs
-    printf("[+]Source port      : %d\n", ntohs(tcpHdr->th_sport)); //th_sport : src port
-    printf("[+]Destination port : %d\n", ntohs(tcpHdr->th_dport)); //th_dport : dst port
-    printf("[+]Data             :\n");
+    printf("[+] Source port      : %d\n", ntohs(tcpHdr->th_sport)); //th_sport : src port
+    printf("[+] Destination port : %d\n", ntohs(tcpHdr->th_dport)); //th_dport : dst port
+    printf("[+] Data             :\n");
 
+    data_area = (u_int8_t *)(packet + SIZE_ETHERNET + 4 * ipHdr->ip_hl + hlen);
     //print data only 16 bytes
-
-
-
+    for(int i = 0; i < 16; i++) printf("0x%x ",data_area[i]);
 
     printf("\n");
 }

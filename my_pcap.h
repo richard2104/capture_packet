@@ -1,18 +1,19 @@
 #include <pcap.h>		//for capturing network
 #include <stdint.h>
 #include <netinet/in.h> //for ntohs
+
 // structure
 #include <netinet/ether.h>
 #include <netinet/ip.h>
-//#include <netinet/tcp.h> was not used, since I used my own structure tr0y_tcphdr
 #include <arpa/inet.h>
+//#include <netinet/tcp.h> was not used, since I used my own structure tr0y_tcphdr
 
 /* Ethernet addresses are 6 bytes */
 #define ETHER__ADDR_LEN	6
-/* 6 + 6 + 2 = 14 */
-#define SIZE_ETHERNET 14
+#define SIZE_ETHERNET 14  /* 6 + 6 + 2 = 14 */
 
 // For reference. I did not use in main code!!
+
 /*
 struct ethhdr {
     unsigned char   h_dest[ETH_ALEN];   // destination eth addr 
@@ -20,6 +21,7 @@ struct ethhdr {
     unsigned short  h_proto;            // packet type ID field 
 };*/
 
+typedef u_int tcp_seq;
 struct tr0y_tcphdr {
     u_int16_t th_sport;     // source port 
     u_int16_t th_dport;     // destination port
@@ -27,7 +29,7 @@ struct tr0y_tcphdr {
     tcp_seq th_ack;     // acknowledgement number
     uint8_t th_offx2;
 
-#define TH_OFF(th) ((th)->th_offx2 & 0xf0) >> 4
+#define TH_OFF(th) (((th)->th_offx2 & 0xf0) >> 4)
     u_int8_t th_flags;
 #define TH_FIN    0x01
 #define TH_SYN    0x02
@@ -63,4 +65,4 @@ struct ip {
     u_short ip_sum;         // checksum 
     struct in_addr ip_src, ip_dst;  // source and dest address 
 };
-
+*/
