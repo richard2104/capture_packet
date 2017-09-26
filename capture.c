@@ -10,8 +10,10 @@ int main(int argc, char **argv) {
     char *dev;
     char errbuf[PCAP_ERRBUF_SIZE]; // 256
     pcap_t *handle;
-
-	// pcap_lookupdev for setting the device
+    const char* name = "김경민"; 
+    printf("[sub26_2017]pcap_test[%s]", name);
+	
+    // pcap_lookupdev for setting the device
     dev = pcap_lookupdev(errbuf);
 	if (dev == NULL) {
 		fprintf(stderr, "Couldn't find default device: %s\n", errbuf);
