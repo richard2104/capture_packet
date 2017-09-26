@@ -28,7 +28,7 @@ int main(int argc, char **argv) {
         fprintf(stderr, "Couldn't open device: %s\n", errbuf);
         exit(1);
     }
-    // [1] + [2]
+    // [1] + [2]  Similar with """while(true) pcap_next_ex"""
     pcap_loop(pcd, 0, callback, NULL);
 }
 
@@ -48,7 +48,7 @@ void callback(u_char *p, const struct pcap_pkthdr *pkthdr, const u_char *packet)
     struct ether_header *etherHdr; // <netinet/ether.h>
     struct ip *ipHdr; // <netinet/ip.h>
     struct tr0y_tcphdr *tcpHdr; // not in <netinet/tcp.h> , my own tcp_header
-    u_int hlen;
+    u_int hlen; //tcp header length
     char *data_area;
 
     printf("-----------------------\n");
