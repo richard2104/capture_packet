@@ -11,16 +11,13 @@ int main(int argc, char **argv) {
     char *dev;
     char errbuf[PCAP_ERRBUF_SIZE]; // 256
     pcap_t *pcd;
-    
-    const char* name = "김경민"; 
-    printf("[sub26_2017]pcap_test[%s]", name);
 	
     // pcap_lookupdev for setting the device
-    dev = pcap_lookupdev(errbuf);
-	if (dev == NULL) {
-		fprintf(stderr, "Couldn't find default device: %s\n", errbuf);
-		exit(1);
-	}
+    dev = argv[1];
+    if (dev == NULL) {
+	fprintf(stderr, "Couldn't find default device: %s\n", errbuf);
+	exit(1);
+    }
     //pcap_t *pcap_open_live(char *device, int snaplen, int promisc, int to_ms, char *ebuf)
     pcd = pcap_open_live(dev, BUFSIZ,  0/*NON-PROMISCUOUS*/, -1, errbuf);
 
@@ -28,8 +25,29 @@ int main(int argc, char **argv) {
         fprintf(stderr, "Couldn't open device: %s\n", errbuf);
         exit(1);
     }
+    
+    /*Ethernet header check*/
+    if (pcap_datalink(pcd) != DLT_EN10MB){
+	fprintf(stderr, "Device %s doesn't provide Ethernet headers\n", argv[1]);
+	return 2;
+    }
+
     // [1] + [2]  Similar with """while(true) pcap_next_ex"""
     pcap_loop(pcd, 0, callback, NULL);
+
+    while (1) {
+        struct pcap_pkthdr* header;
+        const u_char* packet;
+        int res = pcap_next_ex(pcd, &header, &packet);
+        if (res == 0) continue;
+        if (res == -1 || res == -2) break;
+	callback(pcd, &header, &packet);
+        printf("%u bytes captured\n", header->caplen);
+    }
+
+    pcap_close(pcd);
+    return 0;
+
 }
 
 // Ethernet 헤더의 "Ethernet Type", IP 헤더의 "Protocol ID",
@@ -53,7 +71,7 @@ void callback(u_char *p, const struct pcap_pkthdr *pkthdr, const u_char *packet)
 
     printf("-----------------------\n");
     printf("[*] CAPTURE THE PACKET!\n");
-	printf("[*] Jacked a packet with length of [%d]\n", pkthdr->len);
+    printf("[*] Jacked a packet with length of [%d]\n", pkthdr->len);
 
     /* ethernet header */
     etherHdr = (struct ether_header*) packet;
