@@ -33,7 +33,7 @@ int main(int argc, char **argv) {
     }
 
     // [1] + [2]  Similar with """while(true) pcap_next_ex"""
-    pcap_loop(pcd, 0, callback, NULL);
+    // pcap_loop(pcd, 0, callback, NULL);
 
     while (1) {
         struct pcap_pkthdr* header;
